@@ -1,0 +1,7 @@
+
+reflex==0.8.15a1
+aiosqlite>=0.21.0
+reflex-enterprise
+pyarrow
+
+pandas
