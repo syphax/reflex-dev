@@ -3,7 +3,9 @@ from reflex_enterprise.components.map.types import LatLng, latlng
 import uuid
 from typing import Literal, TypedDict
 
-FacilityType = Literal["DC", "Cross-dock", "Last-mile", "Retail"]
+FacilityType = Literal[
+    "DC", "Cross-dock", "Last-mile", "Retail", "Factory", "Source Warehouse"
+]
 
 
 class Facility(TypedDict):
@@ -27,6 +29,8 @@ FACILITY_COLORS = {
     "Cross-dock": "#FF4500",
     "Last-mile": "#32CD32",
     "Retail": "#FFD700",
+    "Factory": "#9370DB",
+    "Source Warehouse": "#FF8C00",
 }
 
 
