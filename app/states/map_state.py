@@ -85,6 +85,13 @@ DEFAULT_PORTS = [
         "city": "Jacksonville",
         "state": "FL",
     },
+    {
+        "name": "Port of Houston",
+        "lat": 29.7604,
+        "lng": -95.3698,
+        "city": "Houston",
+        "state": "TX",
+    },
 ]
 
 
