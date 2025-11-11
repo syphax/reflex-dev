@@ -4,7 +4,7 @@ import uuid
 from typing import Literal, TypedDict
 
 FacilityType = Literal[
-    "DC", "Cross-dock", "Last-mile", "Retail", "Factory", "Source Warehouse"
+    "DC", "Cross-dock", "Last-mile", "Retail", "Factory", "Source Warehouse", "Port"
 ]
 
 
@@ -31,7 +31,61 @@ FACILITY_COLORS = {
     "Retail": "#FFD700",
     "Factory": "#9370DB",
     "Source Warehouse": "#FF8C00",
+    "Port": "#008B8B",
 }
+DEFAULT_PORTS = [
+    {
+        "name": "Long Beach",
+        "lat": 33.7701,
+        "lng": -118.1937,
+        "city": "Long Beach",
+        "state": "CA",
+    },
+    {
+        "name": "Savannah",
+        "lat": 32.0809,
+        "lng": -81.0912,
+        "city": "Savannah",
+        "state": "GA",
+    },
+    {"name": "NY/NJ", "lat": 40.6692, "lng": -74.0445, "city": "Newark", "state": "NJ"},
+    {
+        "name": "Seattle/Tacoma",
+        "lat": 47.2758,
+        "lng": -122.4138,
+        "city": "Tacoma",
+        "state": "WA",
+    },
+    {
+        "name": "Oakland",
+        "lat": 37.7965,
+        "lng": -122.2801,
+        "city": "Oakland",
+        "state": "CA",
+    },
+    {
+        "name": "Baltimore",
+        "lat": 39.2667,
+        "lng": -76.5833,
+        "city": "Baltimore",
+        "state": "MD",
+    },
+    {"name": "Miami", "lat": 25.7741, "lng": -80.1931, "city": "Miami", "state": "FL"},
+    {
+        "name": "Virginia (Norfolk)",
+        "lat": 36.8468,
+        "lng": -76.2951,
+        "city": "Norfolk",
+        "state": "VA",
+    },
+    {
+        "name": "Jacksonville",
+        "lat": 30.3322,
+        "lng": -81.6557,
+        "city": "Jacksonville",
+        "state": "FL",
+    },
+]
 
 
 class MapState(rx.State):
@@ -39,6 +93,28 @@ class MapState(rx.State):
     zoom: float = 4.0
     facilities: list[Facility] = []
     selected_facility_type: FacilityType = "DC"
+
+    @rx.event
+    def on_load(self):
+        has_ports = any((f["facility_type"] == "Port" for f in self.facilities))
+        if not has_ports:
+            for port_data in DEFAULT_PORTS:
+                new_port = Facility(
+                    facility_id=str(uuid.uuid4()),
+                    facility_type="Port",
+                    site_name=f"{port_data['name']} Port",
+                    parent_company="US Port Authority",
+                    street_address="",
+                    city=port_data["city"],
+                    state_province=port_data["state"],
+                    zip5="",
+                    zip9="",
+                    country="USA",
+                    latitude=port_data["lat"],
+                    longitude=port_data["lng"],
+                    is_active=True,
+                )
+                self.facilities.append(new_port)
 
     @rx.event
     def add_facility(self, event: dict):

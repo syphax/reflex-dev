@@ -16,6 +16,8 @@ def index() -> rx.Component:
     )
 
 
+from app.states.map_state import MapState
+
 app = rxe.App(
     theme=rx.theme(appearance="light"),
     head_components=[
@@ -33,5 +35,5 @@ app = rxe.App(
         ),
     ],
 )
-app.add_page(index)
+app.add_page(index, route="/", on_load=MapState.on_load)
 app.add_page(edit_sites_page, route="/edit-sites")
