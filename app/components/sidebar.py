@@ -179,28 +179,33 @@ def header() -> rx.Component:
             rx.el.div(
                 rx.cond(
                     AuthState.is_authenticated,
-                    rx.el.div(
+                    rx.cond(
+                        AuthState.show_user_menu,
                         rx.el.div(
-                            rx.el.p(
-                                AuthState.user_info.username, class_name="font-semibold"
+                            rx.el.div(
+                                rx.el.p(
+                                    AuthState.user_info.username,
+                                    class_name="font-semibold",
+                                ),
+                                rx.el.p(
+                                    AuthState.user_info.email,
+                                    class_name="text-sm text-gray-500",
+                                ),
+                                class_name="p-2 border-b",
                             ),
-                            rx.el.p(
-                                AuthState.user_info.email,
-                                class_name="text-sm text-gray-500",
+                            rx.el.button(
+                                "Profile",
+                                on_click=rx.redirect("/profile"),
+                                class_name="w-full text-left px-4 py-2 text-sm hover:bg-gray-100",
                             ),
+                            rx.el.button(
+                                "Log Out",
+                                on_click=AuthState.logout,
+                                class_name="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50",
+                            ),
+                            class_name="absolute top-12 right-0 w-48 bg-white rounded-md shadow-lg border z-20 divide-y",
+                            on_mouse_leave=lambda: AuthState.set_show_user_menu(False),
                         ),
-                        rx.el.button(
-                            "Profile",
-                            on_click=rx.redirect("/profile"),
-                            class_name="w-full text-left px-4 py-2 text-sm hover:bg-gray-100",
-                        ),
-                        rx.el.button(
-                            "Log Out",
-                            on_click=AuthState.logout,
-                            class_name="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50",
-                        ),
-                        class_name="absolute top-12 right-0 w-48 bg-white rounded-md shadow-lg border z-20 divide-y",
-                        on_mouse_leave=AuthState.set_show_user_menu(False),
                     ),
                 ),
                 rx.el.button(

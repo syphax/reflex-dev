@@ -24,8 +24,8 @@ def index() -> rx.Component:
 
 @rx.event
 async def on_load_index():
-    await require_login
-    yield MapState.on_load
+    yield require_login
+    yield MapState.on_load()
 
 
 app = rxe.App(

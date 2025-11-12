@@ -74,6 +74,10 @@ class AuthState(rx.State):
         self.show_user_menu = not self.show_user_menu
 
     @rx.event
+    def set_show_user_menu(self, show: bool):
+        self.show_user_menu = show
+
+    @rx.event
     async def register(self, form_data: dict):
         username = form_data.get("username", "").strip()
         email = form_data.get("email", "").strip()
