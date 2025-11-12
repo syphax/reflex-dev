@@ -1,5 +1,6 @@
 import reflex as rx
 from app.states.map_state import MapState, FACILITY_COLORS, FacilityType
+from app.states.auth_state import AuthState
 from app.components.file_upload_component import file_upload_component
 from app.components.product_editor import product_attributes_editor
 from app.components.demand_editor import demand_editor
@@ -89,13 +90,138 @@ def facilities_tab_content() -> rx.Component:
     )
 
 
-def sidebar() -> rx.Component:
+from app.states.network_state import NetworkState
+
+
+def save_network_dialog() -> rx.Component:
+    return rx.radix.primitives.dialog.root(
+        rx.radix.primitives.dialog.trigger(
+            rx.el.button(
+                rx.icon("save", class_name="w-4 h-4 mr-2"),
+                "Save Network",
+                class_name="bg-violet-600 text-white px-3 py-1 rounded-md text-sm hover:bg-violet-700 flex items-center",
+            )
+        ),
+        rx.radix.primitives.dialog.content(
+            rx.radix.primitives.dialog.title("Save Network"),
+            rx.radix.primitives.dialog.description(
+                "Save the current network configuration to your account."
+            ),
+            rx.el.div(
+                rx.el.label(
+                    "Network Name", class_name="text-sm font-medium text-gray-700"
+                ),
+                rx.el.input(
+                    placeholder="My Awesome Network",
+                    on_change=NetworkState.set_new_network_name,
+                    default_value=NetworkState.new_network_name,
+                    class_name="w-full p-2 border rounded-md text-sm mt-1",
+                ),
+                class_name="mt-4",
+            ),
+            rx.el.div(
+                rx.el.label(
+                    "Description (Optional)",
+                    class_name="text-sm font-medium text-gray-700",
+                ),
+                rx.el.textarea(
+                    placeholder="A brief description of this network...",
+                    on_change=NetworkState.set_new_network_description,
+                    default_value=NetworkState.new_network_description,
+                    class_name="w-full p-2 border rounded-md text-sm mt-1",
+                ),
+                class_name="mt-4",
+            ),
+            rx.el.div(
+                rx.radix.primitives.dialog.close(
+                    rx.el.button(
+                        "Cancel",
+                        class_name="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300",
+                    )
+                ),
+                rx.el.button(
+                    "Save",
+                    on_click=NetworkState.save_network,
+                    class_name="bg-violet-600 text-white px-4 py-2 rounded-md text-sm hover:bg-violet-700",
+                ),
+                class_name="flex justify-end gap-3 mt-4",
+            ),
+        ),
+    )
+
+
+def header() -> rx.Component:
     return rx.el.div(
         rx.el.div(
             rx.icon(tag="network", class_name="h-8 w-8 text-violet-600"),
-            rx.el.h2("Network Design", class_name="text-xl font-bold"),
-            class_name="flex items-center gap-2 p-4 border-b",
+            rx.el.div(
+                rx.el.h2("Network Design", class_name="text-xl font-bold"),
+                rx.cond(
+                    NetworkState.current_network_name,
+                    rx.el.span(
+                        f"Editing: {NetworkState.current_network_name}",
+                        class_name="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full",
+                    ),
+                ),
+            ),
+            class_name="flex items-center gap-2",
         ),
+        rx.el.div(
+            rx.el.a(
+                rx.el.button(
+                    rx.icon("folder-search", class_name="w-4 h-4 mr-2"),
+                    "My Networks",
+                    class_name="bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-300 flex items-center",
+                ),
+                href="/my-networks",
+            ),
+            save_network_dialog(),
+            rx.el.div(
+                rx.cond(
+                    AuthState.is_authenticated,
+                    rx.el.div(
+                        rx.el.div(
+                            rx.el.p(
+                                AuthState.user_info.username, class_name="font-semibold"
+                            ),
+                            rx.el.p(
+                                AuthState.user_info.email,
+                                class_name="text-sm text-gray-500",
+                            ),
+                        ),
+                        rx.el.button(
+                            "Profile",
+                            on_click=rx.redirect("/profile"),
+                            class_name="w-full text-left px-4 py-2 text-sm hover:bg-gray-100",
+                        ),
+                        rx.el.button(
+                            "Log Out",
+                            on_click=AuthState.logout,
+                            class_name="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50",
+                        ),
+                        class_name="absolute top-12 right-0 w-48 bg-white rounded-md shadow-lg border z-20 divide-y",
+                        on_mouse_leave=AuthState.set_show_user_menu(False),
+                    ),
+                ),
+                rx.el.button(
+                    rx.image(
+                        src=f"https://api.dicebear.com/9.x/initials/svg?seed={AuthState.user_info.username}",
+                        class_name="w-8 h-8 rounded-full",
+                    ),
+                    on_click=AuthState.toggle_user_menu,
+                    class_name="relative",
+                ),
+                class_name="relative",
+            ),
+            class_name="flex items-center gap-4",
+        ),
+        class_name="flex items-center justify-between p-4 border-b",
+    )
+
+
+def sidebar() -> rx.Component:
+    return rx.el.div(
+        header(),
         rx.el.div(
             rx.el.button(
                 "Facilities",

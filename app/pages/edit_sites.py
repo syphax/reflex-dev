@@ -1,6 +1,7 @@
 import reflex as rx
 from app.states.edit_sites_state import EditSitesState
 from app.states.map_state import Facility
+from app.components.sidebar import header
 
 
 def sortable_header(label: str, column_key: str) -> rx.Component:
@@ -42,6 +43,7 @@ def facility_table_row(facility: Facility) -> rx.Component:
 
 def edit_sites_page() -> rx.Component:
     return rx.el.div(
+        header(),
         rx.el.div(
             rx.el.a(
                 rx.icon("arrow-left", class_name="w-5 h-5 mr-2"),

@@ -3,6 +3,12 @@ import reflex_enterprise as rxe
 from app.components.sidebar import sidebar
 from app.components.map_component import map_component
 from app.pages.edit_sites import edit_sites_page
+from app.pages.login import login_page
+from app.pages.register import registration_page
+from app.pages.profile import profile_page
+from app.pages.my_networks import my_networks_page
+from app.states.auth_state import AuthState, require_login
+from app.states.map_state import MapState
 
 
 def index() -> rx.Component:
@@ -16,7 +22,11 @@ def index() -> rx.Component:
     )
 
 
-from app.states.map_state import MapState
+@rx.event
+async def on_load_index():
+    await require_login
+    yield MapState.on_load
+
 
 app = rxe.App(
     theme=rx.theme(appearance="light"),
@@ -35,5 +45,9 @@ app = rxe.App(
         ),
     ],
 )
-app.add_page(index, route="/", on_load=MapState.on_load)
-app.add_page(edit_sites_page, route="/edit-sites")
+app.add_page(index, route="/", on_load=on_load_index)
+app.add_page(edit_sites_page, route="/edit-sites", on_load=require_login)
+app.add_page(my_networks_page, route="/my-networks", on_load=require_login)
+app.add_page(login_page, route="/login")
+app.add_page(registration_page, route="/register")
+app.add_page(profile_page, route="/profile", on_load=require_login)
