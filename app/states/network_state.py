@@ -43,9 +43,9 @@ class NetworkState(rx.State):
                 }
             )
             scenarios_json = json.dumps(scenario_state.scenarios)
-            with rx.session() as session:
+            async with rx.asession() as session:
                 now = datetime.datetime.now(datetime.timezone.utc)
-                result = session.exec(
+                result_res = await session.exec(
                     text(
                         "INSERT INTO network (owner_user_id, network_name, description, is_public, created_at, updated_at) VALUES (:owner_user_id, :network_name, :description, :is_public, :created_at, :updated_at) RETURNING id"
                     ),
@@ -57,11 +57,12 @@ class NetworkState(rx.State):
                         "created_at": now,
                         "updated_at": now,
                     },
-                ).first()
+                )
+                result = result_res.first()
                 if not result or not result[0]:
                     raise Exception("Failed to create network record.")
                 network_id = result[0]
-                session.exec(
+                await session.exec(
                     text(
                         "INSERT INTO network_data (network_id, facilities_json, demand_sets_json, products_json, config_json, scenarios_json) VALUES (:network_id, :facilities_json, :demand_sets_json, :products_json, :config_json, :scenarios_json)"
                     ),
@@ -74,7 +75,7 @@ class NetworkState(rx.State):
                         "scenarios_json": scenarios_json,
                     },
                 )
-                session.commit()
+                await session.commit()
                 self.current_network_id = network_id
                 self.current_network_name = self.new_network_name
                 self.new_network_name = ""

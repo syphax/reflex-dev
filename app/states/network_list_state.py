@@ -25,13 +25,14 @@ class NetworkListState(rx.State):
         if not auth_state.is_authenticated or auth_state.user_id is None:
             return rx.redirect("/login")
         try:
-            with rx.session() as session:
-                result = session.exec(
+            async with rx.asession() as session:
+                result = await session.exec(
                     text(
                         "SELECT id, network_name, description, created_at, updated_at FROM network WHERE owner_user_id = :user_id ORDER BY updated_at DESC"
                     ),
                     {"user_id": auth_state.user_id},
-                ).all()
+                )
+                rows = result.all()
                 self.networks = [
                     NetworkInfo(
                         id=row.id,
@@ -40,7 +41,7 @@ class NetworkListState(rx.State):
                         created_at=row.created_at.strftime("%b %d, %Y"),
                         updated_at=row.updated_at.strftime("%b %d, %Y"),
                     )
-                    for row in result
+                    for row in rows
                 ]
         except Exception as e:
             logging.exception(f"Failed to fetch networks: {e}")
@@ -56,20 +57,22 @@ class NetworkListState(rx.State):
         from app.states.network_state import NetworkState
 
         try:
-            with rx.session() as session:
-                network_meta = session.exec(
+            async with rx.asession() as session:
+                network_meta_result = await session.exec(
                     text("SELECT network_name FROM network WHERE id = :network_id"),
                     {"network_id": network_id},
-                ).first()
+                )
+                network_meta = network_meta_result.first()
                 if not network_meta:
                     yield rx.toast.error("Network not found.")
                     return
-                data_result = session.exec(
+                data_result_res = await session.exec(
                     text(
                         "SELECT facilities_json, demand_sets_json, products_json, config_json, scenarios_json FROM network_data WHERE network_id = :network_id"
                     ),
                     {"network_id": network_id},
-                ).first()
+                )
+                data_result = data_result_res.first()
                 if not data_result:
                     yield rx.toast.error("Network data not found.")
                     return
