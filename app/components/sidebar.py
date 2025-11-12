@@ -52,7 +52,7 @@ def facility_list_item(facility: dict) -> rx.Component:
         ),
         rx.el.button(
             rx.icon(tag="trash-2", size=18),
-            on_click=lambda: MapState.remove_facility(facility["facility_id"]),
+            on_click=MapState.remove_facility(facility["facility_id"]),
             class_name="p-1 text-red-500 hover:text-red-700",
         ),
         class_name="flex items-center justify-between p-2 rounded-md hover:bg-gray-100",
@@ -139,10 +139,12 @@ def save_network_dialog() -> rx.Component:
                         class_name="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300",
                     )
                 ),
-                rx.el.button(
-                    "Save",
-                    on_click=NetworkState.save_network,
-                    class_name="bg-violet-600 text-white px-4 py-2 rounded-md text-sm hover:bg-violet-700",
+                rx.radix.primitives.dialog.close(
+                    rx.el.button(
+                        "Save",
+                        on_click=NetworkState.save_network,
+                        class_name="bg-violet-600 text-white px-4 py-2 rounded-md text-sm hover:bg-violet-700",
+                    )
                 ),
                 class_name="flex justify-end gap-3 mt-4",
             ),
@@ -230,7 +232,7 @@ def sidebar() -> rx.Component:
         rx.el.div(
             rx.el.button(
                 "Facilities",
-                on_click=lambda: SidebarState.set_active_tab("Facilities"),
+                on_click=SidebarState.set_active_tab("Facilities"),
                 class_name=rx.cond(
                     SidebarState.active_tab == "Facilities",
                     "border-b-2 border-violet-600 text-violet-600 font-semibold",
@@ -240,7 +242,7 @@ def sidebar() -> rx.Component:
             ),
             rx.el.button(
                 "Products",
-                on_click=lambda: SidebarState.set_active_tab("Products"),
+                on_click=SidebarState.set_active_tab("Products"),
                 class_name=rx.cond(
                     SidebarState.active_tab == "Products",
                     "border-b-2 border-violet-600 text-violet-600 font-semibold",
@@ -250,7 +252,7 @@ def sidebar() -> rx.Component:
             ),
             rx.el.button(
                 "Demand",
-                on_click=lambda: SidebarState.set_active_tab("Demand"),
+                on_click=SidebarState.set_active_tab("Demand"),
                 class_name=rx.cond(
                     SidebarState.active_tab == "Demand",
                     "border-b-2 border-violet-600 text-violet-600 font-semibold",
@@ -260,7 +262,7 @@ def sidebar() -> rx.Component:
             ),
             rx.el.button(
                 "Network Config",
-                on_click=lambda: SidebarState.set_active_tab("Network Config"),
+                on_click=SidebarState.set_active_tab("Network Config"),
                 class_name=rx.cond(
                     SidebarState.active_tab == "Network Config",
                     "border-b-2 border-violet-600 text-violet-600 font-semibold",
@@ -270,7 +272,7 @@ def sidebar() -> rx.Component:
             ),
             rx.el.button(
                 "Simulation",
-                on_click=lambda: SidebarState.set_active_tab("Simulation"),
+                on_click=SidebarState.set_active_tab("Simulation"),
                 class_name=rx.cond(
                     SidebarState.active_tab == "Simulation",
                     "border-b-2 border-violet-600 text-violet-600 font-semibold",
@@ -280,7 +282,7 @@ def sidebar() -> rx.Component:
             ),
             rx.el.button(
                 "Scenarios",
-                on_click=lambda: SidebarState.set_active_tab("Scenarios"),
+                on_click=SidebarState.set_active_tab("Scenarios"),
                 class_name=rx.cond(
                     SidebarState.active_tab == "Scenarios",
                     "border-b-2 border-violet-600 text-violet-600 font-semibold",

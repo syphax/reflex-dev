@@ -22,7 +22,6 @@ def index() -> rx.Component:
     )
 
 
-@rx.event
 async def on_load_index():
     yield require_login
     yield MapState.on_load()
