@@ -52,7 +52,7 @@ def facility_list_item(facility: dict) -> rx.Component:
         ),
         rx.el.button(
             rx.icon(tag="trash-2", size=18),
-            on_click=MapState.remove_facility(facility["facility_id"]),
+            on_click=lambda: MapState.remove_facility(facility["facility_id"]),
             class_name="p-1 text-red-500 hover:text-red-700",
         ),
         class_name="flex items-center justify-between p-2 rounded-md hover:bg-gray-100",

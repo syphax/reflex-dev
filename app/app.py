@@ -22,11 +22,6 @@ def index() -> rx.Component:
     )
 
 
-async def on_load_index():
-    yield require_login
-    yield MapState.on_load()
-
-
 app = rxe.App(
     theme=rx.theme(appearance="light"),
     head_components=[
@@ -44,7 +39,7 @@ app = rxe.App(
         ),
     ],
 )
-app.add_page(index, route="/", on_load=on_load_index)
+app.add_page(index, route="/", on_load=[require_login, MapState.on_load])
 app.add_page(edit_sites_page, route="/edit-sites", on_load=require_login)
 app.add_page(my_networks_page, route="/my-networks", on_load=require_login)
 app.add_page(login_page, route="/login")

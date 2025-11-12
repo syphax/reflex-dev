@@ -31,7 +31,7 @@ def map_component() -> rx.Component:
         id="map",
         center=MapState.center,
         zoom=MapState.zoom,
-        on_click=lambda e: MapState.add_facility(e),
+        on_click=MapState.add_facility,
         height="100%",
         width="100%",
         class_name="rounded-lg shadow-md",
