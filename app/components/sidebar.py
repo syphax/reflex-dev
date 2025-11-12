@@ -8,6 +8,7 @@ from app.components.network_config_editor import network_config_editor
 from app.components.simulation_panel import simulation_panel
 from app.components.scenario_view import scenario_view
 from app.components.facility_editor_panel import facility_editor_panel
+from app.states.facility_editor_state import FacilityEditorState
 
 
 class SidebarState(rx.State):
@@ -17,6 +18,12 @@ class SidebarState(rx.State):
     @rx.event
     def toggle_resize(self):
         self.is_resized = not self.is_resized
+
+    @rx.event
+    async def select_facility_for_edit(self, facility_id: str):
+        self.active_tab = "Edit Facility"
+        facility_editor_state = await self.get_state(FacilityEditorState)
+        yield facility_editor_state.select_facility(facility_id)
 
 
 def facility_list_item(facility: Facility) -> rx.Component:
@@ -39,6 +46,13 @@ def facility_list_item(facility: Facility) -> rx.Component:
         rx.el.button(
             rx.icon(tag=rx.cond(facility["is_active"], "eye", "eye-off"), size=18),
             on_click=lambda: MapState.toggle_facility_active(facility["facility_id"]),
+            class_name="p-1 text-gray-500 hover:text-gray-800",
+        ),
+        rx.el.button(
+            rx.icon(tag="copy", size=18),
+            on_click=lambda: SidebarState.select_facility_for_edit(
+                facility["facility_id"]
+            ),
             class_name="p-1 text-gray-500 hover:text-gray-800",
         ),
         rx.el.button(
