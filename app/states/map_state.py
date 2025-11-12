@@ -1,7 +1,7 @@
 import reflex as rx
 from reflex_enterprise.components.map.types import LatLng, latlng
 import uuid
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, cast
 
 FacilityType = Literal[
     "DC", "Cross-dock", "Last-mile", "Retail", "Factory", "Source Warehouse", "Port"
@@ -10,7 +10,7 @@ FacilityType = Literal[
 
 class Facility(TypedDict):
     facility_id: str
-    facility_type: FacilityType
+    facility_types: list[FacilityType]
     site_name: str
     parent_company: str
     street_address: str
@@ -19,6 +19,16 @@ class Facility(TypedDict):
     zip5: str
     zip9: str
     country: str
+    latitude: float
+    longitude: float
+    is_active: bool
+
+
+class FacilityNode(TypedDict):
+    node_id: str
+    facility_id: str
+    facility_type: FacilityType
+    site_name: str
     latitude: float
     longitude: float
     is_active: bool
@@ -99,16 +109,17 @@ class MapState(rx.State):
     center: LatLng = latlng(lat=39.8283, lng=-98.5795)
     zoom: float = 4.0
     facilities: list[Facility] = []
-    selected_facility_type: FacilityType = "DC"
 
     @rx.event
     def on_load(self):
-        has_ports = any((f["facility_type"] == "Port" for f in self.facilities))
+        has_ports = any(
+            ("Port" in f.get("facility_types", []) for f in self.facilities)
+        )
         if not has_ports:
             for port_data in DEFAULT_PORTS:
                 new_port = Facility(
                     facility_id=str(uuid.uuid4()),
-                    facility_type="Port",
+                    facility_types=["Port"],
                     site_name=f"{port_data['name']} Port",
                     parent_company="US Port Authority",
                     street_address="",
@@ -128,18 +139,12 @@ class MapState(rx.State):
         lat = event["latlng"]["lat"]
         lng = event["latlng"]["lng"]
         facility_type_count = sum(
-            (
-                1
-                for f in self.facilities
-                if f["facility_type"] == self.selected_facility_type
-            )
+            (1 for f in self.facilities if "DC" in f["facility_types"])
         )
-        site_name = (
-            f"{self.selected_facility_type} {chr(ord('A') + facility_type_count)}"
-        )
+        site_name = f"New Facility {facility_type_count + 1}"
         new_facility = Facility(
             facility_id=str(uuid.uuid4()),
-            facility_type=self.selected_facility_type,
+            facility_types=["DC"],
             site_name=site_name,
             parent_company="Default Co",
             street_address="",
@@ -156,7 +161,13 @@ class MapState(rx.State):
 
     @rx.event
     def add_facilities(self, facilities: list[Facility]):
-        self.facilities.extend(facilities)
+        migrated_facilities = []
+        for f in facilities:
+            if "facility_type" in f and "facility_types" not in f:
+                f["facility_types"] = [cast(FacilityType, f["facility_type"])]
+                del f["facility_type"]
+            migrated_facilities.append(f)
+        self.facilities.extend(migrated_facilities)
 
     @rx.event
     def remove_facility(self, facility_id: str):
@@ -181,11 +192,23 @@ class MapState(rx.State):
                 self.facilities[i]["longitude"] = new_latlng["lng"]
                 break
 
+    @rx.event
+    def update_facility(self, facility_data: Facility):
+        for i, f in enumerate(self.facilities):
+            if f["facility_id"] == facility_data["facility_id"]:
+                self.facilities[i] = facility_data
+                return
+
     @rx.var
     def facility_markers(self) -> list[dict]:
         markers = []
         for facility in self.facilities:
             if facility["is_active"]:
+                color = (
+                    FACILITY_COLORS[facility["facility_types"][0]]
+                    if facility["facility_types"]
+                    else "#808080"
+                )
                 markers.append(
                     {
                         "id": facility["facility_id"],
@@ -193,8 +216,26 @@ class MapState(rx.State):
                             lat=facility["latitude"], lng=facility["longitude"]
                         ),
                         "facility_id": facility["facility_id"],
-                        "color": FACILITY_COLORS[facility["facility_type"]],
+                        "color": color,
                         "tooltip": facility["site_name"],
                     }
                 )
         return markers
+
+    @rx.var
+    def facility_nodes(self) -> list[FacilityNode]:
+        nodes = []
+        for facility in self.facilities:
+            for f_type in facility["facility_types"]:
+                nodes.append(
+                    FacilityNode(
+                        node_id=f"{facility['facility_id']}_{f_type}",
+                        facility_id=facility["facility_id"],
+                        facility_type=f_type,
+                        site_name=facility["site_name"],
+                        latitude=facility["latitude"],
+                        longitude=facility["longitude"],
+                        is_active=facility["is_active"],
+                    )
+                )
+        return nodes

@@ -27,7 +27,10 @@ def sortable_header(label: str, column_key: str) -> rx.Component:
 def facility_table_row(facility: Facility) -> rx.Component:
     return rx.el.tr(
         rx.el.td(facility["site_name"], class_name="px-4 py-3 whitespace-nowrap"),
-        rx.el.td(facility["facility_type"], class_name="px-4 py-3 whitespace-nowrap"),
+        rx.el.td(
+            facility["facility_types"].join(", "),
+            class_name="px-4 py-3 whitespace-nowrap",
+        ),
         rx.el.td(facility["parent_company"], class_name="px-4 py-3 whitespace-nowrap"),
         rx.el.td(facility["street_address"], class_name="px-4 py-3 whitespace-nowrap"),
         rx.el.td(facility["city"], class_name="px-4 py-3 whitespace-nowrap"),
@@ -62,7 +65,7 @@ def edit_sites_page() -> rx.Component:
                     rx.el.thead(
                         rx.el.tr(
                             sortable_header("Site Name", "site_name"),
-                            sortable_header("Type", "facility_type"),
+                            sortable_header("Types", "facility_types"),
                             sortable_header("Parent Company", "parent_company"),
                             sortable_header("Address", "street_address"),
                             sortable_header("City", "city"),

@@ -29,7 +29,7 @@ class EditSitesState(rx.State):
                 f
                 for f in facilities
                 if search_lower in f["site_name"].lower()
-                or search_lower in f["facility_type"].lower()
+                or any((search_lower in t.lower() for t in f["facility_types"]))
                 or search_lower in f["parent_company"].lower()
                 or (search_lower in f["street_address"].lower())
                 or (search_lower in f["city"].lower())
@@ -37,10 +37,14 @@ class EditSitesState(rx.State):
                 or (search_lower in f["zip5"].lower())
             ]
         reverse = self.sort_order == "desc"
-        return sorted(
-            facilities,
-            key=lambda f: f.get(self.sort_by, 0)
-            if isinstance(f.get(self.sort_by), (int, float))
-            else str(f.get(self.sort_by, "")),
-            reverse=reverse,
-        )
+
+        @rx.event
+        def sort_key(f: Facility):
+            val = f.get(self.sort_by)
+            if self.sort_by == "facility_types":
+                return ", ".join(sorted(f["facility_types"]))
+            if isinstance(val, (int, float)):
+                return val
+            return str(val or "")
+
+        return sorted(facilities, key=sort_key, reverse=reverse)

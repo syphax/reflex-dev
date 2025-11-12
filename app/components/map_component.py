@@ -1,6 +1,10 @@
 import reflex as rx
 import reflex_enterprise as rxe
 from app.states.map_state import MapState, FACILITY_COLORS
+import reflex as rx
+import reflex_enterprise as rxe
+from app.states.map_state import MapState, FACILITY_COLORS
+from app.states.facility_editor_state import FacilityEditorState
 
 
 def map_component() -> rx.Component:
@@ -23,7 +27,10 @@ def map_component() -> rx.Component:
                 event_handlers={
                     "dragend": lambda event, payload: MapState.update_facility_location(
                         payload
-                    )
+                    ),
+                    "click": lambda event, payload: FacilityEditorState.select_facility(
+                        payload["facility_id"]
+                    ),
                 },
                 facility_id=marker["facility_id"],
             ),

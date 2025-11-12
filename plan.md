@@ -1,59 +1,80 @@
-# Phase 7 Implementation: Network Ownership & Persistence
+# Phase 8 Implementation: Multi-Type Facilities & Facility Editor Refactor
 
-## Phase 7.1: Database Schema & Save Network Functionality ✅
-- [x] Create Network table in database (network_id PK, owner_user_id FK, network_name, description, created_at, updated_at, is_public)
-- [x] Create NetworkData table for storing JSON blobs (network_data_id PK, network_id FK, facilities_json, demands_json, products_json, config_json, scenarios_json)
-- [x] Build NetworkState with save_network event handler
-- [x] Add "Save Network" button in sidebar header with dialog
-- [x] Serialize current state (facilities, demands, products, network config, scenarios) to JSON
-- [x] Insert Network and NetworkData records into database with current user as owner
-- [x] Display success toast with network name after save
-- [x] Handle validation (network name required, user must be authenticated)
-
----
-
-## Phase 7.2: My Networks Page & Load Network Functionality
-- [ ] Create "My Networks" page route (/my-networks) with protected authentication
-- [ ] Build NetworkListState to fetch all networks owned by current user
-- [ ] Display networks in card grid layout showing: name, description, created date, last updated
-- [ ] Add "Load Network" button for each network card
-- [ ] Implement load_network event that fetches NetworkData JSON by network_id
-- [ ] Deserialize JSON and populate MapState, DemandState, ProductState, NetworkConfigState, ScenarioState
-- [ ] Add navigation link to "My Networks" in sidebar header
-- [ ] Redirect to main map view after successful network load
-- [ ] Display currently loaded network name in header
+## Phase 8.1: Data Model Refactor - Multi-Type Facilities ✅
+- [x] Update Facility TypedDict to remove single facility_type field
+- [x] Create FacilityNode TypedDict (facility_id, facility_type, is_active) for network nodes
+- [x] Add facility_types: list[FacilityType] field to Facility model
+- [x] Create MapState.facility_nodes computed var that generates all facility-type combinations
+- [x] Update default ports to have facility_types=["Port"] instead of facility_type="Port"
+- [x] Update add_facility to assign default facility_types=["DC"] when clicking map
+- [x] Update facility_markers to work with facility_types (uses first type for color)
+- [x] Update all components that reference facility_type to use facility_types list
+- [x] Add MapState.selected_facility_id for facility selection
+- [x] Backward compatibility in file upload for old facility_type format
 
 ---
 
-## Phase 7.3: Network Management & Metadata Editor
-- [ ] Add "Edit" action to network cards in My Networks page
-- [ ] Create network metadata editor modal/form (rename network, update description)
-- [ ] Implement update_network_metadata event with database UPDATE query
-- [ ] Add "Delete Network" button with confirmation dialog
-- [ ] Implement delete_network event (cascade delete NetworkData records)
-- [ ] Add "Duplicate Network" action to create copy with new name
-- [ ] Implement toggle_public event to make networks public/private
-- [ ] Add "Last Modified" timestamp update on every network save
-- [ ] Display network owner info and creation/modification dates in metadata view
+## Phase 8.2: Facility Selection & Editor Panel ⏳
+- [ ] Add click event handler to facility markers (rxe.map.circle_marker on_click event)
+- [ ] Create FacilityEditorState with selected facility details and editing logic
+- [ ] Build facility_editor_panel() component in sidebar
+- [ ] Display selected facility name, location, address fields (editable)
+- [ ] Add facility type checkboxes (all 7 types: DC, Cross-dock, Last-mile, Retail, Factory, Source Warehouse, Port)
+- [ ] Allow users to check/uncheck multiple facility types
+- [ ] Update facility_editor save handler to persist changes to MapState.facilities
+- [ ] Show "No facility selected" message when selected_facility_id is None
+
+---
+
+## Phase 8.3: Sidebar Integration & Facility Type Removal
+- [ ] Remove facility_type_selector() component from sidebar
+- [ ] Add new "Edit Facility" tab to sidebar tab navigation
+- [ ] Show facility_editor_panel() when "Edit Facility" tab is active
+- [ ] Update facilities_tab_content() to remove dropdown (already removed in 8.1)
+- [ ] Update facility_list_item() to show multiple colored dots for multi-type facilities
+- [ ] Add visual indicator in facility list showing which facility is currently selected
+- [ ] Ensure map click still adds facility (without needing dropdown - already working in 8.1)
+- [ ] Test all CRUD operations work with new multi-type model
+
+---
+
+## Phase 8.4: Network Node Table & Flow Routing
+- [ ] Create network_nodes_view() component showing facility-type combinations table
+- [ ] Display columns: Facility Name, Type, Location (City, State), Active Status
+- [ ] Add this table to "Network Config" tab or new "Network Nodes" tab
+- [ ] Update simulation logic to use facility_nodes as routing endpoints
+- [ ] Ensure demand can be assigned to specific facility-type combinations
+- [ ] Update cost calculation to handle intra-facility flows (DC → Last-mile at same location)
+- [ ] Add edge cost overrides for specific facility-node pairs
+- [ ] Test that multi-type facilities can participate in network flows independently
 
 ---
 
 ## Current Goal
-Phase 7.1 completed! ✅
+Phase 8.1 Complete! ✅
 
-**What was implemented:**
-- Database tables (network & network_data) with proper foreign keys and indexes
-- NetworkState with save_network functionality
-- Save Network dialog in sidebar header with name and description inputs
-- JSON serialization of all network state (facilities, demands, products, config, scenarios)
-- Proper validation and error handling
-- Display of currently loaded network name in header
+**Completed:**
+1. ✅ Facility model now uses `facility_types: list[FacilityType]`
+2. ✅ FacilityNode TypedDict created for network routing
+3. ✅ facility_nodes computed var generates all facility × type combinations
+4. ✅ New facilities default to facility_types=["DC"]
+5. ✅ Ports use facility_types=["Port"]
+6. ✅ Backward compatibility in CSV import
+7. ✅ Selected facility ID state variable added
 
-**Next step:** 
-Ready to implement Phase 7.2: My Networks Page & Load Network Functionality
+**Starting Phase 8.2:**
+Next step is to add click handlers to facility markers and create the facility editor panel with checkboxes for selecting multiple types.
 
-## Notes
-- User mentioned simulation/optimization may not be fully working yet - will revisit in future phase
-- Using SQLite with raw SQL queries via rx.session() (consistent with Phase 6 authentication implementation)
-- JSON serialization for complex nested state objects (facilities, demands, products, etc.)
-- All network operations require user authentication (extend require_login pattern)
+---
+
+## Previous Phases (Completed)
+
+### Phase 7.1: Database Schema & Save Network Functionality ✅
+- [x] Create Network table in database
+- [x] Create NetworkData table for JSON storage
+- [x] Build NetworkState with save_network event handler
+- [x] Add "Save Network" button in sidebar header with dialog
+- [x] Serialize and save all state to database
+
+### Phases 1-6: Core Application ✅
+(Authentication, Map, Facilities, Products, Demand, Network Config, Simulation, Scenarios all implemented)

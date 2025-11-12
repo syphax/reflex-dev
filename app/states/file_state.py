@@ -1,9 +1,10 @@
 import reflex as rx
-from app.states.map_state import MapState, Facility
+from app.states.map_state import MapState, Facility, FacilityType
 import pandas as pd
 import pyarrow.parquet as pq
 import io
 import logging
+from typing import cast
 
 
 class FileState(rx.State):
@@ -29,7 +30,7 @@ class FileState(rx.State):
                 else:
                     yield rx.toast.error(f"Unsupported file type: {file.name}")
                     continue
-                required_cols = [
+                required_cols_old = [
                     "site_name",
                     "parent_company",
                     "street_address",
@@ -41,16 +42,28 @@ class FileState(rx.State):
                     "longitude",
                     "facility_type",
                 ]
-                if not all((col in df.columns for col in required_cols)):
-                    yield rx.toast.error(f"Missing required columns in {file.name}")
+                required_cols_new = required_cols_old[:-1] + ["facility_types"]
+                has_old_format = "facility_type" in df.columns
+                has_new_format = "facility_types" in df.columns
+                if not (has_old_format or has_new_format):
+                    yield rx.toast.error(
+                        f"Missing 'facility_type' or 'facility_types' column in {file.name}"
+                    )
                     continue
                 new_facilities = []
                 for _, row in df.iterrows():
+                    facility_types = []
+                    if has_new_format and isinstance(row["facility_types"], str):
+                        facility_types = [
+                            t.strip() for t in row["facility_types"].split(",")
+                        ]
+                    elif has_old_format:
+                        facility_types = [row["facility_type"]]
                     new_facility = Facility(
                         facility_id=str(pd.NA)
                         if pd.isna(row.get("facility_id"))
                         else str(row.get("facility_id")),
-                        facility_type=row["facility_type"],
+                        facility_types=cast(list[FacilityType], facility_types),
                         site_name=row["site_name"],
                         parent_company=row["parent_company"],
                         street_address=row["street_address"],

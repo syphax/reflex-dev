@@ -1,5 +1,5 @@
 import reflex as rx
-from app.states.map_state import MapState, FACILITY_COLORS, FacilityType
+from app.states.map_state import MapState, FACILITY_COLORS, FacilityType, Facility
 from app.states.auth_state import AuthState
 from app.components.file_upload_component import file_upload_component
 from app.components.product_editor import product_attributes_editor
@@ -7,6 +7,7 @@ from app.components.demand_editor import demand_editor
 from app.components.network_config_editor import network_config_editor
 from app.components.simulation_panel import simulation_panel
 from app.components.scenario_view import scenario_view
+from app.components.facility_editor_panel import facility_editor_panel
 
 
 class SidebarState(rx.State):
@@ -18,31 +19,21 @@ class SidebarState(rx.State):
         self.is_resized = not self.is_resized
 
 
-def facility_type_selector() -> rx.Component:
-    return rx.el.div(
-        rx.el.label("Facility Type", class_name="font-semibold text-gray-700"),
-        rx.el.select(
-            rx.foreach(
-                list(FACILITY_COLORS.keys()),
-                lambda type: rx.el.option(type, value=type),
-            ),
-            value=MapState.selected_facility_type,
-            on_change=MapState.set_selected_facility_type,
-            class_name="w-full p-2 border rounded-md bg-white",
-        ),
-        class_name="p-4 border-b",
-    )
-
-
-def facility_list_item(facility: dict) -> rx.Component:
+def facility_list_item(facility: Facility) -> rx.Component:
     colors_var = rx.Var.create(FACILITY_COLORS)
     return rx.el.div(
         rx.el.div(
             rx.el.div(
-                class_name="h-4 w-4 rounded-full border",
-                style={"background_color": colors_var[facility["facility_type"]]},
+                rx.foreach(
+                    facility["facility_types"],
+                    lambda f_type: rx.el.div(
+                        class_name="h-4 w-4 rounded-full border",
+                        style={"background_color": colors_var[f_type]},
+                    ),
+                ),
+                class_name="flex items-center gap-1",
             ),
-            rx.el.span(facility["site_name"], class_name="font-medium"),
+            rx.el.span(facility["site_name"], class_name="font-medium ml-2"),
             class_name="flex items-center gap-3 flex-1",
         ),
         rx.el.button(
@@ -83,10 +74,7 @@ def facility_list() -> rx.Component:
 
 def facilities_tab_content() -> rx.Component:
     return rx.el.div(
-        facility_type_selector(),
-        file_upload_component(),
-        facility_list(),
-        class_name="flex flex-col h-full",
+        file_upload_component(), facility_list(), class_name="flex flex-col h-full"
     )
 
 
@@ -281,6 +269,16 @@ def sidebar() -> rx.Component:
                 style={"padding": "1rem", "flex": 1, "backgroundColor": "transparent"},
             ),
             rx.el.button(
+                "Edit Facility",
+                on_click=SidebarState.set_active_tab("Edit Facility"),
+                class_name=rx.cond(
+                    SidebarState.active_tab == "Edit Facility",
+                    "border-b-2 border-violet-600 text-violet-600 font-semibold",
+                    "text-gray-500 hover:text-gray-700",
+                ),
+                style={"padding": "1rem", "flex": 1, "backgroundColor": "transparent"},
+            ),
+            rx.el.button(
                 "Scenarios",
                 on_click=SidebarState.set_active_tab("Scenarios"),
                 class_name=rx.cond(
@@ -299,6 +297,7 @@ def sidebar() -> rx.Component:
             ("Demand", demand_editor()),
             ("Network Config", network_config_editor()),
             ("Simulation", simulation_panel()),
+            ("Edit Facility", facility_editor_panel()),
             ("Scenarios", scenario_view()),
             rx.el.div(),
         ),
